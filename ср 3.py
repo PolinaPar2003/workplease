@@ -4,7 +4,7 @@ s = 0
 with open('pirate_accounting.csv', encoding="utf8") as csvfile:
     reader = csv.reader(csvfile, delimiter=';', quotechar='"')
     for index, row in enumerate(reader):
-        f = row[2].replace('x', '*')
+        f = row[2].replace('x', '1')
         c = 0
         for i in f:
             if i != '*':
