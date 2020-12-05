@@ -23,7 +23,7 @@ if __name__ == '__main__':
 def draw():
     screen.fill((0, 0, 0))
     font = pygame.font.Font(None, 50)
-    text = font.render("Hello, Pygame!", True, (100, 255, 100))
+    text = font.render("Hello, Pygame!", False, (100, 255, 100))
     text_x = width // 2 - text.get_width() // 2
     text_y = height // 2 - text.get_height() // 2
     text_w = text.get_width()
