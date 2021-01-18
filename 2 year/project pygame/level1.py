@@ -65,7 +65,8 @@ class LevelFirst:
                     Tile('target', x, y, 1)
                 else:
                     Tile('path_center', x, y, 1)
-                    new_player = Player(x, y)
+                    #Player(, 6, 1, 60, 50)
+                    new_player = Player(player_image, 6, 1, x, y)
         return new_player, x, y
 
     def decor(self):
@@ -104,35 +105,49 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.image = player_image
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.rect = self.image.get_rect()
-        self.rect = self.rect.move(tile_width * pos_x, tile_height * pos_y)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x * tile_width, y * tile_height)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
     def move_right(self):
-        if not pygame.sprite.spritecollide(player, nelzay_group, False):
+        #if not pygame.sprite.spritecollide(player, nelzay_group, False):
             self.rect.x += 45
-        else:
-            check = False
-            for i in pygame.sprite.spritecollide(player, nelzay_group, False):
-                rect_player = player.image.get_rect()
-                rect_sprite = i.image.get_rect()
+        #else:
+            #self.rect.x += 45
+            #check = False
+            #for i in pygame.sprite.spritecollide(player, nelzay_group, False):
+                #rect_player = player.image.get_rect()
+                #rect_sprite = i.image.get_rect()
                 #if rect_player.midtop[1] > rect_sprite.midtop[1]:
                     #print("top")
                 #elif rect_player.midleft[0] > rect_sprite.midleft[0]:
                     #print("left")
-                if rect_player.midright[0] >= rect_sprite.midright[0]:
-                    print(rect_player.midright[0], rect_sprite.midright[0])
-                    check = True
-                    break
-                else:
-                    print(rect_player.midright[0], rect_sprite.midright[0])
-                    check = False
-            if check is False:
-                self.rect.x += 45
+                #if rect_player.midright[0] >= rect_sprite.midright[0]:
+                    #print(rect_player.midright[0], rect_sprite.midright[0])
+                    #check = True
+                    #break
+                #else:
+                    #print(rect_player.midright[0], rect_sprite.midright[0])
+                    #check = False
+            #if check is False:
+                #self.rect.x += 45
 
 
     def move_left(self):
@@ -148,28 +163,27 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= 45
 
 
-class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
-        super().__init__(all_sprites)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
+#class AnimatedSprite(pygame.sprite.Sprite):
+    #def __init__(self, sheet, columns, rows, x, y):
+        #super().__init__(all_sprites)
+        #self.frames = []
+        #self.cut_sheet(sheet, columns, rows)
+        #self.cur_frame = 0
+        #self.image = self.frames[self.cur_frame]
+        #self.rect = self.rect.move(x, y)
 
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
+    #def cut_sheet(self, sheet, columns, rows):
+        #self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                #sheet.get_height() // rows)
+        #for j in range(rows):
+            #for i in range(columns):
+                #frame_location = (self.rect.w * i, self.rect.h * j)
+                #self.frames.append(sheet.subsurface(pygame.Rect(
+                    #frame_location, self.rect.size)))
 
-    def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
-
+    #def update(self):
+        #self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        #self.image = self.frames[self.cur_frame]
 
 
 if __name__ == '__main__':
@@ -221,11 +235,11 @@ if __name__ == '__main__':
         'image_house': LevelFirst().load_image("house.png"),
         'image_grass': LevelFirst().load_image("grass2.png")
     }
-    player_image = LevelFirst().load_image('shrek1.png')
+    player_image = LevelFirst().load_image("shrek_idet.png")
     tile_width = tile_height = 45
     player, level_x, level_y = LevelFirst().generate_level(LevelFirst().load_level('level 1.0.txt'))
     LevelFirst().decor()
-    dragon = AnimatedSprite(LevelFirst().load_image("shrek_idet.png"), 6, 1, 60, 50)
+    #dragon =
     running = True
     while running:
         clock.tick(FPS)
@@ -235,21 +249,61 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    #dragon.update()
+                    x = player.rect.x // tile_width
+                    y = player.rect.y // tile_height
+                    player.kill()
+                    player = Player(LevelFirst().load_image("shrek_idet.png"), 6, 1, x, y)
                     s = 0
-                    spritemove = True
+                    #spritemove = True
                     while s < 6:
                         clock.tick(FPS)
-                        dragon.update()
+                        player.update()
                         all_sprites.draw(screen)
+                        player_group.draw(screen)
                         pygame.display.flip()
                         s += 1
                     player.move_right()
                 if event.key == pygame.K_LEFT:
+                    x = player.rect.x // tile_width
+                    y = player.rect.y // tile_height
+                    player.kill()
+                    player = Player(LevelFirst().load_image("shrek_idet2.png"), 6, 1, x, y)
+                    s = 0
+                    while s < 6:
+                        clock.tick(FPS)
+                        player.update()
+                        all_sprites.draw(screen)
+                        player_group.draw(screen)
+                        pygame.display.flip()
+                        s += 1
                     player.move_left()
                 if event.key == pygame.K_UP:
+                    x = player.rect.x // tile_width
+                    y = player.rect.y // tile_height
+                    player.kill()
+                    player = Player(LevelFirst().load_image("shrek_up.png"), 1, 1, x, y)
+                    s = 0
+                    while s < 6:
+                        clock.tick(FPS)
+                        player.update()
+                        all_sprites.draw(screen)
+                        player_group.draw(screen)
+                        pygame.display.flip()
+                        s += 1
                     player.move_down()
                 if event.key == pygame.K_DOWN:
+                    x = player.rect.x // tile_width
+                    y = player.rect.y // tile_height
+                    player.kill()
+                    player = Player(LevelFirst().load_image("shrek_down.png"), 1, 1, x, y)
+                    s = 0
+                    while s < 6:
+                        clock.tick(FPS)
+                        player.update()
+                        all_sprites.draw(screen)
+                        player_group.draw(screen)
+                        pygame.display.flip()
+                        s += 1
                     player.move_up()
         all_sprites.draw(screen)
         player_group.draw(screen)
