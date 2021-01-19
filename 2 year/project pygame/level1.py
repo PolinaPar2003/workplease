@@ -3,7 +3,7 @@ import os
 import subprocess
 
 
-class LevelFirst:  # класс для генерации уровня
+class Level:  # класс для генерации уровня
     def generate_level(self, level):  # генерация уровня из файла с картой
         new_player, x, y = None, None, None
         for y in range(len(level)):
@@ -74,7 +74,7 @@ class LevelFirst:  # класс для генерации уровня
                     new_player = Player(player_image, 6, 1, x, y)
         return new_player, x, y
 
-    def decor(self):  # некоторые украшения
+    def decor_first(self):  # некоторые украшения первого уровня
         Tile('image_grass', 10, 4.5)
         Tile('image_plant', 0, 0)
         Tile('image_seaweed', 3, 3)
@@ -82,6 +82,10 @@ class LevelFirst:  # класс для генерации уровня
         Tile('image_tree', 4, 9.5)
         Tile('image_swamp', 12, 2)
         Tile('image_big_tree', 13, 11)
+
+    def decor_third(self):
+        Tile('sign_image', 7.4, 5.1)
+        Tile('donkey', 6, 3.5)
 
     def load_image(self, name, colorkey=None):  # загрузка картинки
         fullname = os.path.join('images', name)
@@ -106,7 +110,7 @@ class Tile(pygame.sprite.Sprite):  # класс для расставления 
             mozhno_group.add(all_sprites.sprites()[-1])
             if 'target' in tile_type:
                 target_group.add(all_sprites.sprites()[-1])
-              # по названию спрайта проверяю можно ли будет персонажу ходить
+            # по названию спрайта проверяю можно ли будет персонажу ходить
             # по нему или нет и добавляю в соответствующую группу
         elif 'zhuk' in tile_type:
             zhuk_group.add(all_sprites.sprites()[-1])
@@ -119,29 +123,29 @@ class Tile(pygame.sprite.Sprite):  # класс для расставления 
 class Player(pygame.sprite.Sprite):  # класс для спрайта и передвижения персонажа
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.frames = []
+        self.frames_player = []
         self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 0
-        self.image = self.frames[self.cur_frame]
+        self.cur_frame_player = 0
+        self.image = self.frames_player[self.cur_frame_player]
         self.rect = self.rect.move(x * tile_width, y * tile_height)
 
     def cut_sheet(self, sheet, columns, rows):  # обрезка спрайта
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
         for j in range(rows):
             for i in range(columns):
                 frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
+                self.frames_player.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
     def update(self):  # движение спрайта
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
+        self.cur_frame_player = (self.cur_frame_player + 1) % len(self.frames_player)
+        self.image = self.frames_player[self.cur_frame_player]
 
     def move_right(self):  # движение вправо
         self.rect.x += 45
         if not pygame.sprite.spritecollide(player, nelzay_group, False):  # проверяю, сталкивается ли спрайт
-            pygame.sprite.spritecollide(player, zhuk_group, True)  # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
+            pygame.sprite.spritecollide(player, zhuk_group,
+                                        True)  # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
             if pygame.sprite.spritecollide(player, target_group, False):
                 global on_target
                 on_target = True
@@ -226,54 +230,57 @@ if __name__ == '__main__':
     player_group = pygame.sprite.Group()
     FPS = 20
     clock = pygame.time.Clock()
-    pygame.display.set_icon(LevelFirst().load_image("icon.png"))  # загрузка иконки
+    pygame.display.set_icon(Level().load_image("icon.png"))  # загрузка иконки
     pygame.display.set_caption('shrek swamp')
     size = width, height = 675, 675
     screen = pygame.display.set_mode(size)
     tile_images = {
-        'path_round_left_up': LevelFirst().load_image('path1.png'),
-        'river': LevelFirst().load_image('swamp1.png'),
-        'sprike_down': LevelFirst().load_image('sprike1.png'),
-        'zhuk': LevelFirst().load_image('zhuk.png'),
-        'path_round_right_up': LevelFirst().load_image('path4.png'),
-        'swamp': LevelFirst().load_image('swamp3.png'),
-        'swamp2': LevelFirst().load_image('swamp4.png'),
-        'grass': LevelFirst().load_image('grass.png'),
-        'sprike_up': LevelFirst().load_image('sprike2.png'),
-        'path_round_left_down': LevelFirst().load_image('path2.png'),
-        'path_round_right_down': LevelFirst().load_image('path3.png'),
-        'path_center': LevelFirst().load_image('path5.png'),
-        'path_gor': LevelFirst().load_image('path_gor.png'),
-        'path_vert': LevelFirst().load_image('path_vert.png'),
-        'path_str_up': LevelFirst().load_image('path6.png'),
-        'path_str_left': LevelFirst().load_image('path7.png'),
-        'path_str_down': LevelFirst().load_image('path8.png'),
-        'path_str_right': LevelFirst().load_image('path9.png'),
-        'zhuk_str_right': LevelFirst().load_image('zhuk_right.png'),
-        'zhuk_str_down': LevelFirst().load_image('zhuk_down.png'),
-        'zhuk_str_left': LevelFirst().load_image('zhuk_left.png'),
-        'zhuk_str_up': LevelFirst().load_image('zhuk_up.png'),
-        'zhuk_round_right': LevelFirst().load_image('zhuk_round_right.png'),
-        'zhuk_round_right2': LevelFirst().load_image('zhuk_round_right2.png'),
-        'zhuk_round_left2': LevelFirst().load_image('zhuk_round_left2.png'),
-        'zhuk_round_left': LevelFirst().load_image('zhuk_round_left.png'),
-        'target': LevelFirst().load_image('target.png'),
-        'image_plant': LevelFirst().load_image("plant.png"),
-        'image_seaweed': LevelFirst().load_image("seaweed.png"),
-        'image_wood': LevelFirst().load_image("wood.png"),
-        'image_tree': LevelFirst().load_image("tree.png"),
-        'image_swamp': LevelFirst().load_image("swamp5.png"),
-        'image_big_tree': LevelFirst().load_image("tree2.png"),
-        'image_house': LevelFirst().load_image("house.png"),
-        'image_grass': LevelFirst().load_image("grass2.png"),
-        'lose': LevelFirst().load_image('lose.png')
+        'path_round_left_up': Level().load_image('path1.png'),
+        'river': Level().load_image('swamp1.png'),
+        'sprike_down': Level().load_image('sprike1.png'),
+        'sign_image': Level().load_image('sign_image.png'),
+        'donkey': Level().load_image('donkey_image.png'),
+        'zhuk': Level().load_image('zhuk.png'),
+        'path_round_right_up': Level().load_image('path4.png'),
+        'swamp': Level().load_image('swamp3.png'),
+        'swamp2': Level().load_image('swamp4.png'),
+        'grass': Level().load_image('grass.png'),
+        'sprike_up': Level().load_image('sprike2.png'),
+        'path_round_left_down': Level().load_image('path2.png'),
+        'path_round_right_down': Level().load_image('path3.png'),
+        'path_center': Level().load_image('path5.png'),
+        'path_gor': Level().load_image('path_gor.png'),
+        'path_vert': Level().load_image('path_vert.png'),
+        'path_str_up': Level().load_image('path6.png'),
+        'path_str_left': Level().load_image('path7.png'),
+        'path_str_down': Level().load_image('path8.png'),
+        'path_str_right': Level().load_image('path9.png'),
+        'zhuk_str_right': Level().load_image('zhuk_right.png'),
+        'zhuk_str_down': Level().load_image('zhuk_down.png'),
+        'zhuk_str_left': Level().load_image('zhuk_left.png'),
+        'zhuk_str_up': Level().load_image('zhuk_up.png'),
+        'zhuk_round_right': Level().load_image('zhuk_round_right.png'),
+        'zhuk_round_right2': Level().load_image('zhuk_round_right2.png'),
+        'zhuk_round_left2': Level().load_image('zhuk_round_left2.png'),
+        'zhuk_round_left': Level().load_image('zhuk_round_left.png'),
+        'target': Level().load_image('target.png'),
+        'image_plant': Level().load_image("plant.png"),
+        'image_seaweed': Level().load_image("seaweed.png"),
+        'image_wood': Level().load_image("wood.png"),
+        'image_tree': Level().load_image("tree.png"),
+        'image_swamp': Level().load_image("swamp5.png"),
+        'image_big_tree': Level().load_image("tree2.png"),
+        'image_house': Level().load_image("house.png"),
+        'image_grass': Level().load_image("grass2.png"),
+        'lose': Level().load_image('lose.png')
     }
-    player_image = LevelFirst().load_image("shrek_idet.png")
+    player_image = Level().load_image("shrek_idet.png")
     player_die = False
     on_target = False
+    level_number = 1
     tile_width = tile_height = 45
-    player, level_x, level_y = LevelFirst().generate_level(LevelFirst().load_level('level 1.0.txt'))
-    LevelFirst().decor()
+    player, level_x, level_y = Level().generate_level(Level().load_level('level 1.0.txt'))
+    Level().decor_first()
     running = True
     while running:
         clock.tick(FPS)
@@ -282,39 +289,38 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:  # если нажата правая стрелка
-                    x = player.rect.x // tile_width  # "запоминаю" нахождение персонажа на поле
-                    y = player.rect.y // tile_height
+                    x_now = player.rect.x // tile_width  # "запоминаю" нахождение персонажа на поле
+                    y_now = player.rect.y // tile_height
                     player.kill()  # "убиваю" его
-                    player = Player(LevelFirst().load_image("shrek_idet.png"), 6, 1, x, y)  # и на его место вставляю
-                    s = 0  # определенный спрайт (в зависимости от направления движения)
+                    player = Player(Level().load_image("shrek_idet.png"), 6, 1, x_now, y_now)  # и на его место вставляю
+                    repeat = 0  # определенный спрайт (в зависимости от направления движения)
                     player.move_right()  # проверка на движение в том направлении и само движение, если оно возможно
-                    while s < 6:  # обновление спрайта (тк он должен двигаться во время передвижения, т е должны
+                    while repeat < 6:  # обновление спрайта (тк он должен двигаться во время передвижения, т е должны
                         clock.tick(FPS)  # изменяться картинки (их 6, поэтому обновление происходит 6 раз)
                         player.update()
                         all_sprites.draw(screen)
                         player_group.draw(screen)
-                        sprike_group.draw(screen)
                         pygame.display.flip()
-                        s += 1
+                        repeat += 1
                 if event.key == pygame.K_LEFT:
-                    x = player.rect.x // tile_width
-                    y = player.rect.y // tile_height
+                    x_now = player.rect.x // tile_width
+                    y_now = player.rect.y // tile_height
                     player.kill()
-                    player = Player(LevelFirst().load_image("shrek_idet7.png"), 6, 1, x, y)
-                    s = 0
+                    player = Player(Level().load_image("shrek_idet5.png"), 6, 1, x_now, y_now)
+                    repeat = 0
                     player.move_left()
-                    while s < 6:
+                    while repeat < 6:
                         clock.tick(FPS)
                         player.update()
                         all_sprites.draw(screen)
                         player_group.draw(screen)
                         pygame.display.flip()
-                        s += 1
+                        repeat += 1
                 if event.key == pygame.K_UP:
-                    x = player.rect.x // tile_width
-                    y = player.rect.y // tile_height
+                    x_now = player.rect.x // tile_width
+                    y_now = player.rect.y // tile_height
                     player.kill()
-                    player = Player(LevelFirst().load_image("shrek_up.png"), 1, 1, x, y)
+                    player = Player(Level().load_image("shrek_up.png"), 1, 1, x_now, y_now)
                     player.move_down()
                     clock.tick(FPS)
                     player.update()
@@ -322,10 +328,10 @@ if __name__ == '__main__':
                     player_group.draw(screen)
                     pygame.display.flip()
                 if event.key == pygame.K_DOWN:
-                    x = player.rect.x // tile_width
-                    y = player.rect.y // tile_height
+                    x_now = player.rect.x // tile_width
+                    y_now = player.rect.y // tile_height
                     player.kill()
-                    player = Player(LevelFirst().load_image("shrek_down.png"), 1, 1, x, y)
+                    player = Player(Level().load_image("shrek_down.png"), 1, 1, x_now, y_now)
                     player.move_up()
                     clock.tick(FPS)
                     player.update()
@@ -333,35 +339,67 @@ if __name__ == '__main__':
                     player_group.draw(screen)
                     pygame.display.flip()
         if len(zhuk_group.sprites()) == 0 and on_target:
-            x = player.rect.x // tile_width
-            y = player.rect.y // tile_height
+            x_now = player.rect.x // tile_width
+            y_now = player.rect.y // tile_height
             player.kill()
-            player = Player(LevelFirst().load_image("shrek_win.png"), 6, 1, x, y)
-            running = False
-            s = 0
-            while s < 6:
+            player = Player(Level().load_image("shrek_win.png"), 6, 1, x_now, y_now)
+            repeat = 0
+            while repeat < 6:
                 clock.tick(FPS)
                 player.update()
                 all_sprites.draw(screen)
                 player_group.draw(screen)
                 pygame.display.flip()
-                s += 1
+                repeat += 1
+            player.kill()
+            if level_number == 1:
+                subprocess.call('python win.py')
+                all_sprites = pygame.sprite.Group()
+                mozhno_group = pygame.sprite.Group()
+                nelzay_group = pygame.sprite.Group()
+                sprike_group = pygame.sprite.Group()
+                zhuk_group = pygame.sprite.Group()
+                target_group = pygame.sprite.Group()
+                player_group = pygame.sprite.Group()
+                player_image = Level().load_image("shrek_idet.png")
+                player_die = False
+                on_target = False
+                player, level_x, level_y = Level().generate_level(Level().load_level('level 2.0.txt'))
+                level_number = 2
+            elif level_number == 2:
+                subprocess.call('python win.py')
+                all_sprites = pygame.sprite.Group()
+                mozhno_group = pygame.sprite.Group()
+                nelzay_group = pygame.sprite.Group()
+                sprike_group = pygame.sprite.Group()
+                zhuk_group = pygame.sprite.Group()
+                target_group = pygame.sprite.Group()
+                player_group = pygame.sprite.Group()
+                player_image = Level().load_image("shrek_idet.png")
+                player_die = False
+                on_target = False
+                player, level_x, level_y = Level().generate_level(Level().load_level('level 3.0.txt'))
+                Level().decor_third()
+                level_number = 3
+            elif level_number == 3:
+                subprocess.call('python end.py')
+                running = False
         if player_die:
-            x = player.rect.x // tile_width
-            y = player.rect.y // tile_height
+            x_now = player.rect.x // tile_width
+            y_now = player.rect.y // tile_height
             player.kill()
-            player = Player(LevelFirst().load_image("shrek_umer.png"), 6, 1, x, y)
-            s = 0
-            while s < 6:
+            player = Player(Level().load_image("shrek_umer.png"), 6, 1, x_now, y_now)
+            repeat = 0
+            while repeat < 6:
                 clock.tick(FPS)
                 player.update()
                 all_sprites.draw(screen)
                 player_group.draw(screen)
                 pygame.display.flip()
-                s += 1
+                repeat += 1
         all_sprites.draw(screen)
-        player_group.draw(screen)
         zhuk_group.draw(screen)
+        player_group.draw(screen)
         pygame.display.flip()
         if player_die:
             running = False
