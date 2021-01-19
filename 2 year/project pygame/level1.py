@@ -1,5 +1,6 @@
 import pygame
 import os
+import subprocess
 
 
 class LevelFirst:  # класс для генерации уровня
@@ -51,13 +52,17 @@ class LevelFirst:  # класс для генерации уровня
                     Tile('path_str_up', x, y)
                     Tile('zhuk', x, y)
                 elif level[y][x] == '{':
-                    Tile('zhuk_round_right', x, y)
+                    Tile('path_round_right_up', x, y)
+                    Tile('zhuk', x, y)
                 elif level[y][x] == ']':
-                    Tile('zhuk_round_right2', x, y)
+                    Tile('path_round_right_down', x, y)
+                    Tile('zhuk', x, y)
                 elif level[y][x] == '[':
-                    Tile('zhuk_round_left2', x, y)
+                    Tile('path_round_left_down', x, y)
+                    Tile('zhuk', x, y)
                 elif level[y][x] == '|':
-                    Tile('zhuk_round_left', x, y)
+                    Tile('path_round_left_up', x, y)
+                    Tile('zhuk', x, y)
                 elif level[y][x] == '~':
                     Tile('path_gor', x, y)
                 elif level[y][x] == '_':
@@ -70,11 +75,11 @@ class LevelFirst:  # класс для генерации уровня
         return new_player, x, y
 
     def decor(self):  # некоторые украшения
-        Tile('image_grass', 7.2, 7.4)
+        Tile('image_grass', 10, 4.5)
         Tile('image_plant', 0, 0)
-        Tile('image_seaweed', 3, 2.5)
+        Tile('image_seaweed', 3, 3)
         Tile('image_house', 1, 7)
-        Tile('image_tree', 4, 10)
+        Tile('image_tree', 4, 9.5)
         Tile('image_swamp', 12, 2)
         Tile('image_big_tree', 13, 11)
 
@@ -97,9 +102,16 @@ class Tile(pygame.sprite.Sprite):  # класс для расставления 
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(tile_width * pos_x, tile_height * pos_y)
-        if 'path' in tile_type or 'zhuk' in tile_type or 'sprike' in tile_type or tile_type == 'target':
-            mozhno_group.add(all_sprites.sprites()[-1])  # по названию спрайта проверяю можно ли будет персонажу ходить
+        if 'path' in tile_type or tile_type == 'target':
+            mozhno_group.add(all_sprites.sprites()[-1])
+            if 'target' in tile_type:
+                target_group.add(all_sprites.sprites()[-1])
+              # по названию спрайта проверяю можно ли будет персонажу ходить
             # по нему или нет и добавляю в соответствующую группу
+        elif 'zhuk' in tile_type:
+            zhuk_group.add(all_sprites.sprites()[-1])
+        elif 'sprike' in tile_type:
+            sprike_group.add(all_sprites.sprites()[-1])
         else:
             nelzay_group.add(all_sprites.sprites()[-1])
 
@@ -122,45 +134,85 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
-    def update(self):  # движение персонажа
+    def update(self):  # движение спрайта
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
     def move_right(self):  # движение вправо
+        self.rect.x += 45
         if not pygame.sprite.spritecollide(player, nelzay_group, False):  # проверяю, сталкивается ли спрайт
-            self.rect.x += 45  # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
+            pygame.sprite.spritecollide(player, zhuk_group, True)  # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
+            if pygame.sprite.spritecollide(player, target_group, False):
+                global on_target
+                on_target = True
+            if not pygame.sprite.spritecollide(player, sprike_group, False):
+                pass
+            else:
+                for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                    if i.image == tile_images['sprike_down']:
+                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                    else:
+                        global player_die
+                        player_die = True
         else:  # если да, то идет проверка, что он сталкивается именно правым концом
-            #self.rect.x += 45
-            check = False
-            for i in pygame.sprite.spritecollide(player, nelzay_group, False):
-                rect_player = player.image.get_rect()
-                rect_sprite = i.image.get_rect()
-                #if rect_player.midtop[1] > rect_sprite.midtop[1]:
-                    #print("top")
-                #elif rect_player.midleft[0] > rect_sprite.midleft[0]:
-                    #print("left")
-                if rect_player.midright[0] == rect_sprite.midright[0]:  # "==" тк у меня размер всех спрайтов равен 45
-                    #print(rect_player.midright[0], rect_sprite.midright[0])
-                    check = True
-                    break
-                else:
-                    #print(rect_player.midright[0])
-                    check = False
-            if check is False:  # если нет спрайтов, с которым он сталкивается правым концом, то движется вправо
-                self.rect.x += 45
-
-
-    def move_left(self):
-        #if not pygame.sprite.spritecollide(player, nelzay_group, False):
             self.rect.x -= 45
 
+    def move_left(self):
+        self.rect.x -= 45
+        if not pygame.sprite.spritecollide(player, nelzay_group, False):
+            pygame.sprite.spritecollide(player, zhuk_group, True)
+            if pygame.sprite.spritecollide(player, target_group, False):
+                global on_target
+                on_target = True
+            if not pygame.sprite.spritecollide(player, sprike_group, False):
+                pass
+            else:
+                for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                    if i.image == tile_images['sprike_down']:
+                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                    else:
+                        global player_die
+                        player_die = True
+        else:
+            self.rect.x += 45
+
     def move_up(self):
-        #if not pygame.sprite.spritecollide(player, nelzay_group, False):
-            self.rect.y += 45
+        self.rect.y += 45
+        if not pygame.sprite.spritecollide(player, nelzay_group, False):
+            pygame.sprite.spritecollide(player, zhuk_group, True)
+            if pygame.sprite.spritecollide(player, target_group, False):
+                global on_target
+                on_target = True
+            if not pygame.sprite.spritecollide(player, sprike_group, False):
+                pass
+            else:
+                for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                    if i.image == tile_images['sprike_down']:
+                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                    else:
+                        global player_die
+                        player_die = True
+        else:
+            self.rect.y -= 45
 
     def move_down(self):
-        #if not pygame.sprite.spritecollide(player, nelzay_group, False):
-            self.rect.y -= 45
+        self.rect.y -= 45
+        if not pygame.sprite.spritecollide(player, nelzay_group, False):
+            pygame.sprite.spritecollide(player, zhuk_group, True)
+            if pygame.sprite.spritecollide(player, target_group, False):
+                global on_target
+                on_target = True
+            if not pygame.sprite.spritecollide(player, sprike_group, False):
+                pass
+            else:
+                for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                    if i.image == tile_images['sprike_down']:
+                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                    else:
+                        global player_die
+                        player_die = True
+        else:
+            self.rect.y += 45
 
 
 if __name__ == '__main__':
@@ -168,6 +220,9 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
     mozhno_group = pygame.sprite.Group()
     nelzay_group = pygame.sprite.Group()
+    sprike_group = pygame.sprite.Group()
+    zhuk_group = pygame.sprite.Group()
+    target_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     FPS = 20
     clock = pygame.time.Clock()
@@ -184,6 +239,7 @@ if __name__ == '__main__':
         'swamp': LevelFirst().load_image('swamp3.png'),
         'swamp2': LevelFirst().load_image('swamp4.png'),
         'grass': LevelFirst().load_image('grass.png'),
+        'sprike_up': LevelFirst().load_image('sprike2.png'),
         'path_round_left_down': LevelFirst().load_image('path2.png'),
         'path_round_right_down': LevelFirst().load_image('path3.png'),
         'path_center': LevelFirst().load_image('path5.png'),
@@ -209,17 +265,18 @@ if __name__ == '__main__':
         'image_swamp': LevelFirst().load_image("swamp5.png"),
         'image_big_tree': LevelFirst().load_image("tree2.png"),
         'image_house': LevelFirst().load_image("house.png"),
-        'image_grass': LevelFirst().load_image("grass2.png")
+        'image_grass': LevelFirst().load_image("grass2.png"),
+        'lose': LevelFirst().load_image('lose.png')
     }
     player_image = LevelFirst().load_image("shrek_idet.png")
+    player_die = False
+    on_target = False
     tile_width = tile_height = 45
     player, level_x, level_y = LevelFirst().generate_level(LevelFirst().load_level('level 1.0.txt'))
     LevelFirst().decor()
-    #dragon =
     running = True
     while running:
         clock.tick(FPS)
-        #all_sprites.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -230,20 +287,20 @@ if __name__ == '__main__':
                     player.kill()  # "убиваю" его
                     player = Player(LevelFirst().load_image("shrek_idet.png"), 6, 1, x, y)  # и на его место вставляю
                     s = 0  # определенный спрайт (в зависимости от направления движения)
-                    #spritemove = True
                     player.move_right()  # проверка на движение в том направлении и само движение, если оно возможно
                     while s < 6:  # обновление спрайта (тк он должен двигаться во время передвижения, т е должны
                         clock.tick(FPS)  # изменяться картинки (их 6, поэтому обновление происходит 6 раз)
                         player.update()
                         all_sprites.draw(screen)
                         player_group.draw(screen)
+                        sprike_group.draw(screen)
                         pygame.display.flip()
                         s += 1
                 if event.key == pygame.K_LEFT:
                     x = player.rect.x // tile_width
                     y = player.rect.y // tile_height
                     player.kill()
-                    player = Player(LevelFirst().load_image("shrek_idet2.png"), 6, 1, x, y)
+                    player = Player(LevelFirst().load_image("shrek_idet7.png"), 6, 1, x, y)
                     s = 0
                     player.move_left()
                     while s < 6:
@@ -275,10 +332,39 @@ if __name__ == '__main__':
                     all_sprites.draw(screen)
                     player_group.draw(screen)
                     pygame.display.flip()
+        if len(zhuk_group.sprites()) == 0 and on_target:
+            x = player.rect.x // tile_width
+            y = player.rect.y // tile_height
+            player.kill()
+            player = Player(LevelFirst().load_image("shrek_win.png"), 6, 1, x, y)
+            running = False
+            s = 0
+            while s < 6:
+                clock.tick(FPS)
+                player.update()
+                all_sprites.draw(screen)
+                player_group.draw(screen)
+                pygame.display.flip()
+                s += 1
+        if player_die:
+            x = player.rect.x // tile_width
+            y = player.rect.y // tile_height
+            player.kill()
+            player = Player(LevelFirst().load_image("shrek_umer.png"), 6, 1, x, y)
+            s = 0
+            while s < 6:
+                clock.tick(FPS)
+                player.update()
+                all_sprites.draw(screen)
+                player_group.draw(screen)
+                pygame.display.flip()
+                s += 1
         all_sprites.draw(screen)
         player_group.draw(screen)
-        #tiles_group.draw(screen)
+        zhuk_group.draw(screen)
         pygame.display.flip()
+        if player_die:
+            running = False
+            pygame.quit()
+            subprocess.call('python lose.py')
     pygame.quit()
-
-
