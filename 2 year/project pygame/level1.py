@@ -8,7 +8,7 @@ class Level:  # класс для генерации уровня
         new_player, x, y = None, None, None
         for y in range(len(level)):
             for x in range(len(level[y])):
-                if level[y][x] == '.':
+                if level[y][x] == '.':  # по значению x, y на карте изображение перемещается на определенную позицию
                     Tile('swamp', x, y)
                 elif level[y][x] == '+':
                     Tile('river', x, y)
@@ -83,13 +83,13 @@ class Level:  # класс для генерации уровня
         Tile('image_swamp', 12, 2)
         Tile('image_big_tree', 13, 11)
 
-    def decor_third(self):
+    def decor_third(self):  # некоторые украшения третьего уровня
         Tile('sign_image', 7.4, 5.1)
         Tile('donkey', 6, 3.5)
 
-    def load_image(self, name, colorkey=None):  # загрузка картинки
-        fullname = os.path.join('images', name)
-        image = pygame.image.load(fullname)
+    def load_image(self, name):  # загрузка картинки
+        fullname = os.path.join('images', name)  # тк у меня все картинки находятся в папке images, то я строю к ней
+        image = pygame.image.load(fullname)  # путь
         return image
 
     def load_level(self, filename):  # загрузка уровня из текстового файла с картой
@@ -106,12 +106,10 @@ class Tile(pygame.sprite.Sprite):  # класс для расставления 
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(tile_width * pos_x, tile_height * pos_y)
-        if 'path' in tile_type or tile_type == 'target':
-            mozhno_group.add(all_sprites.sprites()[-1])
+        if 'path' in tile_type or tile_type == 'target':  # по названию спрайта проверяю можно ли будет персонажу ходить
+            mozhno_group.add(all_sprites.sprites()[-1])  # по нему или нет и добавляю в соответствующую группу
             if 'target' in tile_type:
                 target_group.add(all_sprites.sprites()[-1])
-            # по названию спрайта проверяю можно ли будет персонажу ходить
-            # по нему или нет и добавляю в соответствующую группу
         elif 'zhuk' in tile_type:
             zhuk_group.add(all_sprites.sprites()[-1])
         elif 'sprike' in tile_type:
@@ -127,7 +125,7 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame_player = 0
         self.image = self.frames_player[self.cur_frame_player]
-        self.rect = self.rect.move(x * tile_width, y * tile_height)
+        self.rect = self.rect.move(x * tile_width, y * tile_height)  # вставка спрайта на определенную позицию
 
     def cut_sheet(self, sheet, columns, rows):  # обрезка спрайта
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
@@ -141,27 +139,24 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
         self.cur_frame_player = (self.cur_frame_player + 1) % len(self.frames_player)
         self.image = self.frames_player[self.cur_frame_player]
 
-    def move_right(self):  # движение вправо
-        self.rect.x += 45
+    def move_right(self):  # движение персонажа вправо
+        self.rect.x += 45  # условно перемещаю спрайт вправо
         if not pygame.sprite.spritecollide(player, nelzay_group, False):  # проверяю, сталкивается ли спрайт
-            pygame.sprite.spritecollide(player, zhuk_group,
-                                        True)  # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
-            if pygame.sprite.spritecollide(player, target_group, False):
+            # с спрайтом, на который ему нельзя заходить, если нет - движение вправо
+            pygame.sprite.spritecollide(player, zhuk_group, True)  # если сталкивается с жуком, он его ест
+            if pygame.sprite.spritecollide(player, target_group, False):  # если встает на мишень
                 global on_target
                 on_target = True
-            if not pygame.sprite.spritecollide(player, sprike_group, False):
-                pass
-            else:
                 for i in pygame.sprite.spritecollide(player, sprike_group, False):
-                    if i.image == tile_images['sprike_down']:
+                    if i.image == tile_images['sprike_down']:  # если встает на шипы и они опущенны, то шипы поднимаются
                         Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
-                    else:
+                    else:  # а если он подняты, то персонаж умирает
                         global player_die
                         player_die = True
-        else:  # если да, то идет проверка, что он сталкивается именно правым концом
+        else:  # если да, то движения вправо не будет
             self.rect.x -= 45
 
-    def move_left(self):
+    def move_left(self):  # со всем остальным движение все аналогично
         self.rect.x -= 45
         if not pygame.sprite.spritecollide(player, nelzay_group, False):
             pygame.sprite.spritecollide(player, zhuk_group, True)
@@ -222,19 +217,19 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
 if __name__ == '__main__':
     pygame.init()
     all_sprites = pygame.sprite.Group()
-    mozhno_group = pygame.sprite.Group()
-    nelzay_group = pygame.sprite.Group()
-    sprike_group = pygame.sprite.Group()
-    zhuk_group = pygame.sprite.Group()
-    target_group = pygame.sprite.Group()
+    mozhno_group = pygame.sprite.Group()  # спрайты, на которые персонажу можно вставать
+    nelzay_group = pygame.sprite.Group()  # спрайты, на которые персонажу нельзя вставать
+    sprike_group = pygame.sprite.Group()  # спрайты с шипами
+    zhuk_group = pygame.sprite.Group()  # спрайты с жуками
+    target_group = pygame.sprite.Group()  # спрайты с мишенью
     player_group = pygame.sprite.Group()
     FPS = 20
     clock = pygame.time.Clock()
     pygame.display.set_icon(Level().load_image("icon.png"))  # загрузка иконки
-    pygame.display.set_caption('shrek swamp')
+    pygame.display.set_caption('shrek swamp')  # загрузка названия окна
     size = width, height = 675, 675
     screen = pygame.display.set_mode(size)
-    tile_images = {
+    tile_images = {  # загрузка изображений
         'path_round_left_up': Level().load_image('path1.png'),
         'river': Level().load_image('swamp1.png'),
         'sprike_down': Level().load_image('sprike1.png'),
@@ -275,9 +270,9 @@ if __name__ == '__main__':
         'lose': Level().load_image('lose.png')
     }
     player_image = Level().load_image("shrek_idet.png")
-    player_die = False
-    on_target = False
-    level_number = 1
+    player_die = False  # если персонаж умер - True
+    on_target = False  # если персонаж на мишени - True
+    level_number = 1  # номер уровня
     tile_width = tile_height = 45
     player, level_x, level_y = Level().generate_level(Level().load_level('level 1.0.txt'))
     Level().decor_first()
