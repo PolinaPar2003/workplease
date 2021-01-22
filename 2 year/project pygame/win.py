@@ -11,16 +11,16 @@ class Win:
         pygame.quit()
         sys.exit()
 
-    def load_image(self, name):
+    def load_image(self, name):  # загрузка изображений
         fullname = os.path.join('images', name)
         image = pygame.image.load(fullname)
         return image
 
-    def start_screen(self):
-        fon = pygame.transform.scale(Win().load_image('win.png'), (WIDTH, HEIGHT))
+    def win_screen(self):
+        fon = pygame.transform.scale(Win().load_image('win.png'), (WIDTH, HEIGHT))  # вставка картинок
         screen.blit(fon, (0, 0))
-        font = pygame.font.Font('3375.ttf', 30)
-        text_coord_play = 390
+        font = pygame.font.Font('3375.ttf', 30)  # загрузка пользовательского шрифта
+        text_coord_play = 390  # рисую кнопку
         string_rendered = font.render("CLOSE", 1, pygame.Color((48, 33, 18)))
         close_rect_play = string_rendered.get_rect()
         close_rect_play.top = text_coord_play
@@ -36,20 +36,20 @@ if __name__ == '__main__':
     FPS = 50
     pygame.init()
     clock = pygame.time.Clock()
-    pygame.display.set_caption('shrek swamp')
-    pygame.display.set_icon(Win().load_image("icon.png"))
+    pygame.display.set_caption('shrek swamp')  # вставка названия окна
+    pygame.display.set_icon(Win().load_image("icon.png"))  # вставка иконки
     size = width, height = 900, 542
     screen = pygame.display.set_mode(size)
     running = True
     while running:
-        close = Win().start_screen()
+        close = Win().win_screen()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 Win().terminate()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if (close.x - 10 <= event.pos[0] <= close.width + 20 + close.x - 10) and \
                         (close.y - 10 <= event.pos[1] <= close.height + 20 + close.y - 10):
-                    running = False
+                    running = False  # если клик мыши попадает на кнопку, то переход к игре
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
