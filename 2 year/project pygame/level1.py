@@ -1,5 +1,6 @@
 import pygame
 import os
+import sys
 import subprocess
 
 
@@ -147,31 +148,28 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
             if pygame.sprite.spritecollide(player, target_group, False):  # если встает на мишень
                 global on_target
                 on_target = True
-                for i in pygame.sprite.spritecollide(player, sprike_group, False):
-                    if i.image == tile_images['sprike_down']:  # если встает на шипы и они опущенны, то шипы поднимаются
-                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
-                    else:  # а если он подняты, то персонаж умирает
-                        global player_die
-                        player_die = True
+            for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                if i.image == tile_images['sprike_down']:  # если встает на шипы и они опущенны, то шипы поднимаются
+                    Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                else:  # а если они подняты, то персонаж умирает
+                    global player_die
+                    player_die = True
         else:  # если да, то движения вправо не будет
             self.rect.x -= 45
 
-    def move_left(self):  # со всем остальным движение все аналогично
+    def move_left(self):  # со всем остальным движением все аналогично
         self.rect.x -= 45
         if not pygame.sprite.spritecollide(player, nelzay_group, False):
             pygame.sprite.spritecollide(player, zhuk_group, True)
             if pygame.sprite.spritecollide(player, target_group, False):
                 global on_target
                 on_target = True
-            if not pygame.sprite.spritecollide(player, sprike_group, False):
-                pass
-            else:
-                for i in pygame.sprite.spritecollide(player, sprike_group, False):
-                    if i.image == tile_images['sprike_down']:
-                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
-                    else:
-                        global player_die
-                        player_die = True
+            for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                if i.image == tile_images['sprike_down']:
+                    Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                else:
+                    global player_die
+                    player_die = True
         else:
             self.rect.x += 45
 
@@ -182,15 +180,12 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
             if pygame.sprite.spritecollide(player, target_group, False):
                 global on_target
                 on_target = True
-            if not pygame.sprite.spritecollide(player, sprike_group, False):
-                pass
-            else:
-                for i in pygame.sprite.spritecollide(player, sprike_group, False):
-                    if i.image == tile_images['sprike_down']:
-                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
-                    else:
-                        global player_die
-                        player_die = True
+            for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                if i.image == tile_images['sprike_down']:
+                    Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                else:
+                    global player_die
+                    player_die = True
         else:
             self.rect.y -= 45
 
@@ -201,15 +196,12 @@ class Player(pygame.sprite.Sprite):  # класс для спрайта и пе�
             if pygame.sprite.spritecollide(player, target_group, False):
                 global on_target
                 on_target = True
-            if not pygame.sprite.spritecollide(player, sprike_group, False):
-                pass
-            else:
-                for i in pygame.sprite.spritecollide(player, sprike_group, False):
-                    if i.image == tile_images['sprike_down']:
-                        Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
-                    else:
-                        global player_die
-                        player_die = True
+            for i in pygame.sprite.spritecollide(player, sprike_group, False):
+                if i.image == tile_images['sprike_down']:
+                    Tile('sprike_up', i.rect.x // tile_width, i.rect.y // tile_height)
+                else:
+                    global player_die
+                    player_die = True
         else:
             self.rect.y += 45
 
@@ -273,9 +265,9 @@ if __name__ == '__main__':
     player_die = False  # если персонаж умер - True
     on_target = False  # если персонаж на мишени - True
     level_number = 1  # номер уровня
-    tile_width = tile_height = 45
-    player, level_x, level_y = Level().generate_level(Level().load_level('level 1.0.txt'))
-    Level().decor_first()
+    tile_width = tile_height = 45  # размер спрайта
+    player, level_x, level_y = Level().generate_level(Level().load_level('level 1.0.txt'))  # загрузка первого уровня
+    Level().decor_first()  # украшение первого уровня
     running = True
     while running:
         clock.tick(FPS)
@@ -297,7 +289,7 @@ if __name__ == '__main__':
                         player_group.draw(screen)
                         pygame.display.flip()
                         repeat += 1
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT:  # с остальным движением все аналогично
                     x_now = player.rect.x // tile_width
                     y_now = player.rect.y // tile_height
                     player.kill()
@@ -333,11 +325,11 @@ if __name__ == '__main__':
                     all_sprites.draw(screen)
                     player_group.draw(screen)
                     pygame.display.flip()
-        if len(zhuk_group.sprites()) == 0 and on_target:
+        if len(zhuk_group.sprites()) == 0 and on_target:  # если персонаж на мишени и все жуки собраны
             x_now = player.rect.x // tile_width
             y_now = player.rect.y // tile_height
             player.kill()
-            player = Player(Level().load_image("shrek_win.png"), 6, 1, x_now, y_now)
+            player = Player(Level().load_image("shrek_win.png"), 6, 1, x_now, y_now)  # спрайт перехода на новый уровень
             repeat = 0
             while repeat < 6:
                 clock.tick(FPS)
@@ -347,39 +339,29 @@ if __name__ == '__main__':
                 pygame.display.flip()
                 repeat += 1
             player.kill()
-            if level_number == 1:
-                subprocess.call('python win.py')
-                all_sprites = pygame.sprite.Group()
-                mozhno_group = pygame.sprite.Group()
-                nelzay_group = pygame.sprite.Group()
-                sprike_group = pygame.sprite.Group()
-                zhuk_group = pygame.sprite.Group()
-                target_group = pygame.sprite.Group()
-                player_group = pygame.sprite.Group()
-                player_image = Level().load_image("shrek_idet.png")
-                player_die = False
-                on_target = False
+            subprocess.call('python win.py')  # картинка, что игрок выиграл
+            all_sprites = pygame.sprite.Group()  # формирование нового уровня
+            mozhno_group = pygame.sprite.Group()
+            nelzay_group = pygame.sprite.Group()
+            sprike_group = pygame.sprite.Group()
+            zhuk_group = pygame.sprite.Group()
+            target_group = pygame.sprite.Group()
+            player_group = pygame.sprite.Group()
+            player_image = Level().load_image("shrek_idet.png")
+            player_die = False
+            on_target = False
+            if level_number == 1:  # и его загрузка
                 player, level_x, level_y = Level().generate_level(Level().load_level('level 2.0.txt'))
                 level_number = 2
             elif level_number == 2:
-                subprocess.call('python win.py')
-                all_sprites = pygame.sprite.Group()
-                mozhno_group = pygame.sprite.Group()
-                nelzay_group = pygame.sprite.Group()
-                sprike_group = pygame.sprite.Group()
-                zhuk_group = pygame.sprite.Group()
-                target_group = pygame.sprite.Group()
-                player_group = pygame.sprite.Group()
-                player_image = Level().load_image("shrek_idet.png")
-                player_die = False
-                on_target = False
                 player, level_x, level_y = Level().generate_level(Level().load_level('level 3.0.txt'))
                 Level().decor_third()
                 level_number = 3
             elif level_number == 3:
+                pygame.quit()  # после третьего уровня игра заканчивается
                 subprocess.call('python end.py')
-                running = False
-        if player_die:
+                sys.exit()
+        if player_die:  # если игрок умер
             x_now = player.rect.x // tile_width
             y_now = player.rect.y // tile_height
             player.kill()
@@ -392,12 +374,11 @@ if __name__ == '__main__':
                 player_group.draw(screen)
                 pygame.display.flip()
                 repeat += 1
-        all_sprites.draw(screen)
+            pygame.quit()
+            subprocess.call('python lose.py')  # картинка, что игрок проиграл
+            sys.exit()
+        all_sprites.draw(screen)  # "рисование" спрайтов в окне
         zhuk_group.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()
-        if player_die:
-            running = False
-            pygame.quit()
-            subprocess.call('python lose.py')
     pygame.quit()
